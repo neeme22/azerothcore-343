@@ -1241,7 +1241,9 @@ private:
 
         Wr w;
         w.put<uint32>(12340).put<uint32>(0).cstr(_acct).put<uint32>(0).raw(local, 4)
-         .put<uint32>(0).put<uint32>(0).put<uint32>(Cfg::RealmId).put<uint64>(0).raw(sha.GetDigest().data(), 20)
+         // el reino del worldserver (RealmID de su worldserver.conf, 1 por defecto), no el del cliente 3.4.3 (Cfg::RealmId):
+         // AzerothCore rechaza la sesión con REALM_LIST_REALM_NOT_FOUND (39) si no coincide con el suyo
+         .put<uint32>(0).put<uint32>(0).put<uint32>(uint32(ConfigAC("RealmID", 1))).put<uint64>(0).raw(sha.GetDigest().data(), 20)
          .put<uint32>(8).raw(z.data(), z.size());
         SrvSend(CMSG335_AUTH_SESSION, w.b);
 

@@ -1625,7 +1625,7 @@ public:
             {
                 WorldPackets::System::FeatureSystemStatus p;
                 p.ComplaintStatus = 2;
-                p.CfgRealmID = 2;
+                p.CfgRealmID = Cfg::RealmId;
                 p.EuropaTicketSystemStatus.emplace();
                 p.EuropaTicketSystemStatus->ThrottleState.MaxTries = 10;
                 p.EuropaTicketSystemStatus->ThrottleState.PerMilliseconds = 60000;
@@ -5560,7 +5560,7 @@ private:
             c.CaseID = int32(_gmTicket.id);
             c.CaseOpened = _gmTicket.abierto;
             c.CaseStatus = _gmTicket.completado ? 4 : 1;          // LE_TICKET_STATUS_RESPONSE / _OPEN (volcado 54261)
-            c.CfgRealmID = 2;                                    // el mismo CfgRealmID que en FeatureSystemStatus
+            c.CfgRealmID = Cfg::RealmId;                         // el mismo CfgRealmID que en FeatureSystemStatus
             c.CharacterID = yo335;
             c.WaitTimeOverrideMinutes = 0;                       // 0: el cliente pinta waitMessage tal cual (sin format)
             std::string m = _gmTicket.completado ? "Respuesta del GM: " + _gmTicket.respuesta
