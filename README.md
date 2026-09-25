@@ -80,11 +80,13 @@ cmake --build build-gateway --config Release --target worldgate mapextractor
 
 1. Create the AzerothCore databases as usual (`dbimport`, or the first world server start with
    `Updates.AutoSetup = 1`). The Battle.net tables, the 3.4.3 realm and the modules' SQL are applied automatically.
-2. Create the gateway's hotfix database and give the AzerothCore user access to it:
+2. Create the gateway's two databases and give the AzerothCore user access to them: `tc343_hotfixes` (the hotfixes
+   sent to the client) and `tc343_auth` (TrinityCore permissions the gateway uses internally; no accounts):
 
    ```bash
-   mysql -uroot -e "CREATE DATABASE tc343_hotfixes DEFAULT CHARSET utf8mb4; GRANT ALL ON tc343_hotfixes.* TO 'acore'@'localhost';"
+   mysql -uroot -e "CREATE DATABASE tc343_hotfixes DEFAULT CHARSET utf8mb4; CREATE DATABASE tc343_auth DEFAULT CHARSET utf8mb4; GRANT ALL ON tc343_hotfixes.* TO 'acore'@'localhost'; GRANT ALL ON tc343_auth.* TO 'acore'@'localhost';"
    gunzip -c gateway/sql/tc343_hotfixes.sql.gz | mysql -uroot tc343_hotfixes
+   mysql -uroot tc343_auth < gateway/sql/tc343_auth.sql
    ```
 
 3. If the server is not on 127.0.0.1, change `address`/`localAddress` of the 3.4.3 realm (`acore_auth.realmlist`, id 2).
@@ -115,6 +117,10 @@ The gateway needs the DB2 files of your own client. Copy `mapextractor` (from `b
 install folder (the one that contains `_classic_`) and run `mapextractor -e 2` (DB2 only; maps are not needed). It
 creates `dbc/<locale>/` (e.g. `dbc/enUS/`); put that `dbc` folder inside a `data343` folder next to `worldgate`
 (or point `DataDir` in `worldgate.conf` to the folder that contains `dbc`).
+
+Any client language works: the gateway uses `dbc/enUS` if it exists and otherwise the first language it finds; to
+force one, set `Locale` in `worldgate.conf` (e.g. `Locale = esES`). If it finds no DB2 it stops with an error that
+says where it looked.
 
 **6. Configuration**
 
@@ -253,11 +259,13 @@ Junto a `worldgate` quedan copiados `worldgate.conf.dist` y los ficheros de dato
 
 1. Crea las bases de AzerothCore como siempre (`dbimport` o el primer arranque del worldserver con
    `Updates.AutoSetup = 1`). Se aplican solas las tablas de Battle.net, el reino 3.4.3 y el SQL de los módulos.
-2. Crea la base de hotfixes de la pasarela y dale permisos al usuario de AzerothCore:
+2. Crea las dos bases de la pasarela y dale permisos al usuario de AzerothCore: `tc343_hotfixes` (los hotfixes que se
+   mandan al cliente) y `tc343_auth` (permisos de TrinityCore que la pasarela usa por dentro; sin cuentas):
 
    ```bash
-   mysql -uroot -e "CREATE DATABASE tc343_hotfixes DEFAULT CHARSET utf8mb4; GRANT ALL ON tc343_hotfixes.* TO 'acore'@'localhost';"
+   mysql -uroot -e "CREATE DATABASE tc343_hotfixes DEFAULT CHARSET utf8mb4; CREATE DATABASE tc343_auth DEFAULT CHARSET utf8mb4; GRANT ALL ON tc343_hotfixes.* TO 'acore'@'localhost'; GRANT ALL ON tc343_auth.* TO 'acore'@'localhost';"
    gunzip -c gateway/sql/tc343_hotfixes.sql.gz | mysql -uroot tc343_hotfixes
+   mysql -uroot tc343_auth < gateway/sql/tc343_auth.sql
    ```
 
 3. Si el servidor no está en 127.0.0.1, cambia `address`/`localAddress` del reino 3.4.3 (`acore_auth.realmlist`, id 2).
@@ -288,6 +296,10 @@ La pasarela necesita los DB2 de tu propio cliente. Copia `mapextractor` (de `bui
 instalación de WoW Classic (la que contiene `_classic_`) y ejecuta `mapextractor -e 2` (solo DB2; los mapas no hacen
 falta). Crea `dbc/<idioma>/` (p. ej. `dbc/esES/`); mete esa carpeta `dbc` dentro de una carpeta `data343` junto a
 `worldgate` (o apunta `DataDir` de `worldgate.conf` a la carpeta que contiene `dbc`).
+
+Vale el cliente en cualquier idioma: la pasarela usa `dbc/enUS` si existe y, si no, el primer idioma que encuentre;
+para fijar uno, pon `Locale` en `worldgate.conf` (p. ej. `Locale = esES`). Si no encuentra DB2 se para con un
+error que dice dónde los ha buscado.
 
 **6. Configuración**
 

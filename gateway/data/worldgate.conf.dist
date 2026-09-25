@@ -14,7 +14,8 @@ InstancePort    = 8087
 WorldServerIP   = 127.0.0.1
 WorldServerPort = 8085
 
-# MySQL de AzerothCore y base de hotfixes de la pasarela (gateway/sql/tc343_hotfixes.sql.gz)
+# MySQL de AzerothCore, base de hotfixes de la pasarela (gateway/sql/tc343_hotfixes.sql.gz) y base de permisos de
+# TrinityCore que usa la pasarela por dentro (gateway/sql/tc343_auth.sql)
 DatabaseHost      = 127.0.0.1
 DatabasePort      = 3306
 DatabaseUser      = acore
@@ -23,9 +24,14 @@ AuthDatabase      = acore_auth
 CharacterDatabase = acore_characters
 WorldDatabase     = acore_world
 HotfixDatabase    = tc343_hotfixes
+TcAuthDatabase    = tc343_auth
 
 # DB2 del cliente 3.4.3 extraídos con el mapextractor de gateway/trinitycore-343 (carpeta que contiene dbc/)
 DataDir = data343/
+
+# Idioma de los DB2 (enUS, esES, deDE, frFR...): la subcarpeta de dbc/ que se usa. Vacío = enUS si existe, si no
+# el primero que haya en dbc/ (mapextractor solo saca los idiomas instalados en el cliente)
+Locale =
 
 # Reino que anuncia la pasarela (el mismo id que la fila de auth.realmlist para 3.4.3)
 RealmId   = 2

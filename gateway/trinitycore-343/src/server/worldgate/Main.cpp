@@ -59,6 +59,7 @@
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -78,7 +79,10 @@ namespace Cfg
     std::string CharDbName = "acore_characters";
     std::string WorldDbName = "acore_world";          // se pueden cambiar con worldgate_bd.txt (auth=, personajes=, mundo=, hotfixes=)
     std::string HotfixDbName = "tc343_hotfixes";
+    std::string TcAuthDbName = "tc343_auth";          // permisos (RBAC) de TrinityCore que consultan su Player/WorldSession
     std::string DataDir = "data343/";   // DB2 del cliente 3.4.3 (mapextractor)
+    std::string Locale;                                // idioma de los DB2 (enUS, esES...); vacío = enUS si está, si no el primero de DataDir/dbc
+    LocaleConstant Db2Locale = LOCALE_enUS;            // el que se usa de verdad (se fija al cargar los DB2)
     uint32 RealmId = 2, Region = 1, Battlegroup = 1;
     std::string RealmName = "AzerothCore 3.4.3";
     std::string WorldserverConf = "worldserver.conf";   // worldserver.conf de AzerothCore (ritmos, etc.)
@@ -490,7 +494,7 @@ private:
         ah.VirtualRealmAddress = int32(realmAddress);
         static bool const sinPropios = std::ifstream("worldgate_sin_hotfix_propios.txt").good();   // interruptor de emergencia
         for (auto const& [id, push] : sDB2Manager.GetHotfixData())   // solo los propios: los de Blizzard ya los trae el cliente
-            if (!sinPropios && id >= Cfg::PrimerHotfixPropio && !push.Records.empty() && (push.AvailableLocalesMask & (1 << LOCALE_enUS)))
+            if (!sinPropios && id >= Cfg::PrimerHotfixPropio && !push.Records.empty() && (push.AvailableLocalesMask & (1 << Cfg::Db2Locale)))
                 ah.Hotfixes.insert(push.Records.front().ID);
         CliSend(ah.Write());
         WorldPackets::ClientConfig::AccountDataTimes adt;
@@ -778,12 +782,12 @@ private:
                             if (store && store->HasRecord(uint32(rec.RecordID)))
                             {
                                 std::size_t pos = resp.HotfixContent.size();
-                                store->WriteRecord(uint32(rec.RecordID), LOCALE_enUS, resp.HotfixContent);
+                                store->WriteRecord(uint32(rec.RecordID), Cfg::Db2Locale, resp.HotfixContent);
                                 hd.Size = uint32(resp.HotfixContent.size() - pos);
                             }
                             // tablas que TC no carga (ItemDisplayInfo, ModelFileData, TextureFileData...): la fila va en binario en
                             // hotfix_blob, como en HotfixHandler.cpp de TC. Es la vía para el contenido custom de esas tablas
-                            else if (std::vector<uint8> const* blob = sDB2Manager.GetHotfixBlobData(rec.TableHash, rec.RecordID, LOCALE_enUS))
+                            else if (std::vector<uint8> const* blob = sDB2Manager.GetHotfixBlobData(rec.TableHash, rec.RecordID, Cfg::Db2Locale))
                             {
                                 hd.Size = uint32(blob->size());
                                 resp.HotfixContent.append(blob->data(), blob->size());
@@ -813,7 +817,7 @@ private:
                         if (store && store->HasRecord(rec.RecordID))   // DB2 del cliente + hotfix de tc343_hotfixes (objetos custom)
                         {
                             rep.Status = DB2Manager::HotfixRecord::Status::Valid;
-                            store->WriteRecord(rec.RecordID, LOCALE_enUS, rep.Data);
+                            store->WriteRecord(rec.RecordID, Cfg::Db2Locale, rep.Data);
                         }
                         CliSend(rep.Write());
                     }
@@ -984,12 +988,12 @@ private:
 
         std::string nombreCuenta = _acct;
         _tcSession = std::make_unique<WorldSession>(_accountId, std::move(nombreCuenta), 1, nullptr, SEC_PLAYER, uint8(2), time_t(0),
-                                                    std::string("Wn64"), Minutes(0), LOCALE_enUS, 0u, false);
+                                                    std::string("Wn64"), Minutes(0), Cfg::Db2Locale, 0u, false);
         _tcPlayer = std::make_unique<GatePlayer>(_tcSession.get());
         GatePlayer* pl = _tcPlayer.get();
         std::string mudo;
         _sesionOtros = std::make_unique<WorldSession>(0u, std::move(mudo), 0, nullptr, SEC_PLAYER, uint8(2), time_t(0),
-                                                      std::string("Wn64"), Minutes(0), LOCALE_enUS, 0u, false);
+                                                      std::string("Wn64"), Minutes(0), Cfg::Db2Locale, 0u, false);
         ObjectGuid guid = ObjectGuid::Create<HighGuid::Player>(_loginGuid);
         pl->Init(guid);
         pl->m_mapId = uint32(mapId);
@@ -1780,8 +1784,8 @@ static int DiagnosticoCustom()
     std::printf("hash de tabla GameObjectDisplayInfo 0x%08X, CreatureDisplayInfo 0x%08X, AreaTrigger 0x%08X\n",
         sGameObjectDisplayInfoStore.GetTableHash(), sCreatureDisplayInfoStore.GetTableHash(), sAreaTriggerStore.GetTableHash());
     for (CurrencyTypesEntry const* c : sCurrencyTypesStore)
-        if (strstr(c->Name[LOCALE_enUS], "Honor") || strstr(c->Name[LOCALE_enUS], "Arena"))
-            std::printf("moneda %u: %s (categoría %d)\n", c->ID, c->Name[LOCALE_enUS], c->CategoryID);
+        if (strstr(c->Name[Cfg::Db2Locale], "Honor") || strstr(c->Name[Cfg::Db2Locale], "Arena"))
+            std::printf("moneda %u: %s (categoría %d)\n", c->ID, c->Name[Cfg::Db2Locale], c->CategoryID);
     {
         std::map<uint32, uint32> rutas;                  // transporte -> fotogramas de TransportAnimation en el cliente
         for (TransportAnimationEntry const* a : sTransportAnimationStore) ++rutas[a->TransportID];
@@ -1863,6 +1867,8 @@ int main(int argc, char** argv)
             else if (k == "CharacterDatabase") Cfg::CharDbName = v;
             else if (k == "WorldDatabase") Cfg::WorldDbName = v;
             else if (k == "HotfixDatabase") Cfg::HotfixDbName = v;
+            else if (k == "TcAuthDatabase") Cfg::TcAuthDbName = v;
+            else if (k == "Locale") Cfg::Locale = v;
             else if (k == "DataDir") { Cfg::DataDir = v; if (!v.empty() && v.back() != '/' && v.back() != '\\') Cfg::DataDir += '/'; }
             else if (k == "RealmId") num(Cfg::RealmId);
             else if (k == "RealmName") Cfg::RealmName = v;
@@ -1899,12 +1905,36 @@ int main(int argc, char** argv)
         HotfixDatabase.SetConnectionInfo(Cfg::DbHost + ";" + std::to_string(Cfg::DbPort) + ";" + Cfg::DbUser + ";" + Cfg::DbPass + ";" + Cfg::HotfixDbName, 1, 1);
         if (HotfixDatabase.Open() || !HotfixDatabase.PrepareStatements()) { std::printf("ERROR: no abre %s\n", Cfg::HotfixDbName.c_str()); return 1; }
         // el Player/WorldSession de TrinityCore consultan permisos (RBAC) en la BD de login: la de referencia tc343_auth, no acore_auth
-        LoginDatabase.SetConnectionInfo(Cfg::DbHost + ";" + std::to_string(Cfg::DbPort) + ";" + Cfg::DbUser + ";" + Cfg::DbPass + ";tc343_auth", 1, 1);
-        if (LoginDatabase.Open() || !LoginDatabase.PrepareStatements()) { std::printf("ERROR: no abre tc343_auth\n"); return 1; }
+        LoginDatabase.SetConnectionInfo(Cfg::DbHost + ";" + std::to_string(Cfg::DbPort) + ";" + Cfg::DbUser + ";" + Cfg::DbPass + ";" + Cfg::TcAuthDbName, 1, 1);
+        // con alguna BD ya abierta, salir de main deja colgados sus hilos y el mensaje no llega a verse: _Exit tras volcarlo
+        if (LoginDatabase.Open() || !LoginDatabase.PrepareStatements()) { std::printf("ERROR: no abre %s (se crea con gateway/sql/tc343_auth.sql)\n", Cfg::TcAuthDbName.c_str()); std::fflush(stdout); std::_Exit(1); }
         sAccountMgr->LoadRBAC();
         std::fflush(stdout);
-        uint32 locales = sDB2Manager.LoadStores(Cfg::DataDir, LOCALE_enUS);
-        std::printf("DB2 del cliente cargados desde %s (máscara de idiomas 0x%X)\n", Cfg::DataDir.c_str(), locales);
+        // idioma de los DB2: el de worldgate.conf (Locale), o enUS si mapextractor lo sacó, o el primero que haya en
+        // DataDir/dbc (un cliente en español solo trae dbc/esES; con enUS fijo no se cargaba ningún DB2)
+        if (!Cfg::Locale.empty())
+        {
+            Cfg::Db2Locale = GetLocaleByName(Cfg::Locale);
+            if (!IsValidLocale(Cfg::Db2Locale)) { std::printf("ERROR: Locale = %s no es un idioma válido (enUS, esES, deDE...)\n", Cfg::Locale.c_str()); std::fflush(stdout); std::_Exit(1); }
+        }
+        else if (!std::filesystem::is_directory(Cfg::DataDir + "dbc/enUS"))
+        {
+            std::error_code ec;
+            for (auto const& d : std::filesystem::directory_iterator(Cfg::DataDir + "dbc", ec))
+            {
+                LocaleConstant l = GetLocaleByName(d.path().filename().string());
+                if (d.is_directory() && IsValidLocale(l)) { Cfg::Db2Locale = l; break; }
+            }
+        }
+        uint32 locales = sDB2Manager.LoadStores(Cfg::DataDir, Cfg::Db2Locale);
+        if (!locales)
+        {
+            std::printf("ERROR: no hay DB2 del cliente en %sdbc/%s/ (ejecuta mapextractor -e 2 en la carpeta del cliente 3.4.3 y revisa DataDir y Locale en worldgate.conf)\n",
+                        Cfg::DataDir.c_str(), localeNames[Cfg::Db2Locale]);
+            std::fflush(stdout);
+            std::_Exit(1);
+        }
+        std::printf("DB2 del cliente cargados desde %s (idioma %s, máscara de idiomas 0x%X)\n", Cfg::DataDir.c_str(), localeNames[Cfg::Db2Locale], locales);
         sDB2Manager.LoadHotfixBlob(locales);
         sDB2Manager.LoadHotfixData(locales);
         sDB2Manager.LoadHotfixOptionalData(locales);
@@ -1963,7 +1993,7 @@ int main(int argc, char** argv)
     {
         for (BattlemasterListEntry const* e : sBattlemasterListStore)
         {
-            std::printf("lista %u '%s': tipo %d, niveles %d-%d, condición %d, flags 0x%X, mapas", e->ID, e->Name[LOCALE_enUS], int32(e->InstanceType),
+            std::printf("lista %u '%s': tipo %d, niveles %d-%d, condición %d, flags 0x%X, mapas", e->ID, e->Name[Cfg::Db2Locale], int32(e->InstanceType),
                 int32(e->MinLevel), int32(e->MaxLevel), int32(e->RequiredPlayerConditionID), uint32(uint8(e->Flags)));
             for (int16 m : e->MapID) if (m >= 0) std::printf(" %d", m);
             std::printf("\n");
