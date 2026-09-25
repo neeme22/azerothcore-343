@@ -1,0 +1,66 @@
+name: nopch-module-build
+on:
+  push:
+    branches:
+      - 'master'
+      - 'test-staging'
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - 'src/*'
+      - 'src/common/**/*'
+      - 'src/genrev/**/*'
+      - 'src/server/*'
+      - 'src/server/apps/**/*'
+      - 'src/server/database/**/*'
+      - 'src/server/game/**/*'
+      - 'src/server/shared/**/*'
+      - 'src/tools/**/*'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  # One concurrency group per workflow + ref.
+  #
+  # - PRs use `refs/pull/<PR_NUMBER>/merge`, so new commits cancel older
+  #   in-progress runs for the same PR.
+  # - A merge does NOT cancel the PR's own runs: this group is keyed on
+  #   refs/pull/<N>/merge and the master push on refs/heads/master, so they
+  #   never share a group. See the cancel-pr-runs-on-close workflow.
+  # - Branch pushes are isolated by ref.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-modules:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            compiler:
+              CC: clang-18
+              CXX: clang++-18
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }}-${{ matrix.compiler.CC }}-nopch-modules
+    if: github.repository == 'mod-playerbots/azerothcore-wotlk' && !github.event.pull_request.draft
+    steps:
+      - uses: actions/checkout@v7
+        # This script installs a general list of modules to compile with
+        # azerothcore. This is useful for ensuring that module compilation
+        # functionality works.
+      - name: Checkout modules
+        run: bash -x ./apps/ci/ci-install-modules.sh
+      - uses: ./.github/actions/linux-build
+        with:
+          CC: ${{ matrix.compiler.CC }}
+          CXX: ${{ matrix.compiler.CXX }}
+          modules: true
+          pch: false
+          maxerrors: 0
+          keepgoing: true

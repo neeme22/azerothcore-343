@@ -1,0 +1,35 @@
+###############################################
+# worldgate: pasarela WoW Classic 3.4.3 (54261) <-> worldserver de AzerothCore
+#
+# Copiar como worldgate.conf junto a worldgate.exe. Las líneas que falten usan el valor por defecto.
+###############################################
+
+# Dónde escucha la pasarela para el cliente 3.4.3. Tiene que coincidir con address/port del reino 3.4.3
+# en auth.realmlist (id = RealmId). InstancePort es la segunda conexión que abre el cliente.
+ListenIP        = 127.0.0.1
+ListenPort      = 8086
+InstancePort    = 8087
+
+# worldserver de AzerothCore (WorldServerPort = el de worldserver.conf)
+WorldServerIP   = 127.0.0.1
+WorldServerPort = 8085
+
+# MySQL de AzerothCore y base de hotfixes de la pasarela (gateway/sql/tc343_hotfixes.sql.gz)
+DatabaseHost      = 127.0.0.1
+DatabasePort      = 3306
+DatabaseUser      = acore
+DatabasePassword  = acore
+AuthDatabase      = acore_auth
+CharacterDatabase = acore_characters
+WorldDatabase     = acore_world
+HotfixDatabase    = tc343_hotfixes
+
+# DB2 del cliente 3.4.3 extraídos con el mapextractor de gateway/trinitycore-343 (carpeta que contiene dbc/)
+DataDir = data343/
+
+# Reino que anuncia la pasarela (el mismo id que la fila de auth.realmlist para 3.4.3)
+RealmId   = 2
+RealmName = AzerothCore 3.4.3
+
+# worldserver.conf de AzerothCore: la pasarela lee de él los ritmos (Rate.*) para los campos del cliente
+WorldServerConf = worldserver.conf

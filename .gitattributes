@@ -1,0 +1,62 @@
+# Auto detect text files and perform LF normalization
+* text eol=lf
+
+# ficheros binarios: sin esto "* text eol=lf" les cambia los saltos de línea y los corrompe
+*.gz     binary
+*.7z     binary
+*.zip    binary
+*.ico    binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.bmp    binary
+*.tga    binary
+*.blp    binary
+*.mpq    binary
+*.MPQ    binary
+*.dbc    binary
+*.db2    binary
+*.m2     binary
+*.skin   binary
+*.wmo    binary
+*.adt    binary
+*.exe    binary
+*.dll    binary
+*.lib    binary
+*.pdb    binary
+*.ttf    binary
+*.otf    binary
+*.woff   binary
+*.woff2  binary
+*.mp3    binary
+*.ogg    binary
+*.wav    binary
+
+# Whitespace rules
+# strict (no trailing, no tabs)
+*.cpp    whitespace=trailing-space,space-before-tab,tab-in-indent,cr-at-eol
+*.h      whitespace=trailing-space,space-before-tab,tab-in-indent,cr-at-eol
+
+# normal (no trailing)
+*.sql    whitespace=trailing-space,space-before-tab,cr-at-eol
+*.txt    whitespace=trailing-space,space-before-tab,cr-at-eol
+
+# special files which must ignore whitespace
+*.patch  whitespace=-trailing-space eol=lf
+*.diff   whitespace=-trailing-space eol=lf
+
+# Standard to msysgit
+*.doc    diff=astextplain
+*.DOC    diff=astextplain
+*.docx   diff=astextplain
+*.DOCX   diff=astextplain
+*.dot    diff=astextplain
+*.DOT    diff=astextplain
+*.pdf    diff=astextplain
+*.PDF    diff=astextplain
+*.rtf    diff=astextplain
+*.RTF    diff=astextplain
+
+# Ignore sql/* files
+data/sql/*    linguist-documentation

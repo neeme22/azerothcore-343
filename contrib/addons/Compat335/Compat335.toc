@@ -1,0 +1,7 @@
+## Interface: 30403
+## Title: Compat335
+## Notes: Ayuda a que addons escritos para 3.3.5a funcionen en el cliente 3.4.3.
+## Version: 1.0
+
+Compat335.xml
+Compat335.lua

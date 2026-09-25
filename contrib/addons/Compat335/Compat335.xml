@@ -1,0 +1,4 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <!-- plantillas de 3.3.5 que ya no existen en 3.4.3 (comprobado contra la interfaz 3.4.3 de Blizzard) -->
+    <Button name="UIPanelButtonTemplate2" inherits="UIPanelButtonTemplate" virtual="true"/>
+</Ui>
