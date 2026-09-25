@@ -126,7 +126,7 @@ says where it looked.
 
 | File | What to check |
 |---|---|
-| `worldserver.conf` | the usual AzerothCore settings (`WorldServerPort = 8085`, `RealmID = 1`) and `DataDir`: the folder with the 3.3.5 data (`dbc/`, `maps/`, `vmaps/`, `mmaps/`, `Cameras/` from client-data; by default `data` next to the worldserver) |
+| `worldserver.conf` | the usual AzerothCore settings (`WorldServerPort = 8085`, `RealmID = 1`), **`Warden.Enabled = 0`** (required: Warden rejects the 3.4.3 client) and `DataDir`: the folder with the 3.3.5 data (`dbc/`, `maps/`, `vmaps/`, `mmaps/`, `Cameras/` from client-data; by default `data` next to the worldserver) |
 | `bnetserver.conf` | `LoginDatabaseInfo`; `LoginREST.ExternalAddress`/`LocalAddress` with the server IP |
 | `worldgate.conf` | copy of `worldgate.conf.dist`: databases, `DataDir` and `WorldServerConf` (path to your `worldserver.conf`) |
 
@@ -305,7 +305,7 @@ error que dice dónde los ha buscado.
 
 | Fichero | Qué revisar |
 |---|---|
-| `worldserver.conf` | lo normal de AzerothCore (`WorldServerPort = 8085`, `RealmID = 1`) y `DataDir`: la carpeta con los datos 3.3.5 (`dbc/`, `maps/`, `vmaps/`, `mmaps/`, `Cameras/` de client-data; por defecto `data` junto al worldserver) |
+| `worldserver.conf` | lo normal de AzerothCore (`WorldServerPort = 8085`, `RealmID = 1`), **`Warden.Enabled = 0`** (obligatorio: Warden rechaza el cliente 3.4.3) y `DataDir`: la carpeta con los datos 3.3.5 (`dbc/`, `maps/`, `vmaps/`, `mmaps/`, `Cameras/` de client-data; por defecto `data` junto al worldserver) |
 | `bnetserver.conf` | `LoginDatabaseInfo`; `LoginREST.ExternalAddress`/`LocalAddress` con la IP del servidor |
 | `worldgate.conf` | copia de `worldgate.conf.dist`: bases de datos, `DataDir` y `WorldServerConf` (ruta a tu `worldserver.conf`) |
 

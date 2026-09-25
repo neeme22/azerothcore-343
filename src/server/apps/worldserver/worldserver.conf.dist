@@ -1163,10 +1163,12 @@ PacketSpoof.BanDuration = 86400
 #
 #    Warden.Enabled
 #        Description: Enable Warden anti-cheat system.
-#        Default:     1 - (Enabled)
-#                     0 - (Disabled)
+#                     MUST be 0 with the WoW Classic 3.4.3 client: it connects through the worldgate gateway,
+#                     Warden rejects its OS ('Wn64') with AUTH_REJECT and its 3.3.5 checks cannot be answered.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled, 3.3.5a clients only)
 
-Warden.Enabled = 1
+Warden.Enabled = 0
 
 #
 #    Warden.NumMemChecks
